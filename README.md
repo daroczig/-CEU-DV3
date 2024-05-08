@@ -7,6 +7,7 @@ This is the R script/materials repository of the "[Data Visualization 4: Buildin
    * [Day 1](#day-1)
    * [Day 2](#day-2)
    * [Day 3](#day-3)
+   * [Day 4](#day-4)
 * [Home Assignment](#home-assignment)
 * [Contact](#contacts)
 
@@ -41,13 +42,210 @@ sudo Rscript -e "library(devtools);withr::with_libpaths(new = '/usr/local/lib/R/
 
 Course materials will be updated from week-to-week.
 
+### Day 1
+
+This week, we build a countdown timer app, similar to https://count-down-timer.eu.org
+
+1. App wireframe with a static UI: [6d31380](https://github.com/daroczig/CEU-DV3/commit/6d31380)
+
+    <details><summary>ui.R</summary>
+
+    ```r
+    library(shiny)
+
+    ui <- fluidPage(
+        h1('Data Visualization 4'),
+        h2('Data Visualization in Production with Shiny')
+    )
+    ```
+    </details>
+
+    <details><summary>server.R</summary>
+
+    ```r
+    library(shiny)
+    server <- function(input, output) {
+
+    }
+    ```
+    </details>
+
+2. Move content generation to the backend: [b9a1e58](https://github.com/daroczig/CEU-DV3/commit/b9a1e58)
+
+3. Add current time (to be later used as the baseline for the countdown timer): [4ca27b0](https://github.com/daroczig/CEU-DV3/commit/4ca27b0), update current time to be reactive: [563b0b8](https://github.com/daroczig/CEU-DV3/commit/563b0b8), show UNIX timestamp in human-friendly format: [4878717](https://github.com/daroczig/CEU-DV3/commit/4878717)
+
+4. Actual countdown from the scheduled time: [2dccd33](https://github.com/daroczig/CEU-DV3/commit/2dccd33)
+
+5. Add background: [5062a79](https://github.com/daroczig/CEU-DV3/commit/5062a79)
+
+6. CSS tweaks to center the timer: [5797572](https://github.com/daroczig/CEU-DV3/commit/5797572)
+
+7. Colorize timer when scheduled time is due based on current timezone: [f628ec6](https://github.com/daroczig/CEU-DV3/commit/f628ec6)
+
+8. Move defaults to reactive values and let user updated via a modal window at [0da5d6c](https://github.com/daroczig/CEU-DV3/commit/0da5d6c)
+
+9. Add time picker for the scheduled time: [b5bfb65](https://github.com/daroczig/CEU-DV3/commit/b5bfb65)
+
+10. Better design for the settings button: [7ba46bd](https://github.com/daroczig/CEU-DV3/commit/7ba46bd)
+
+11. Pass settings as URL parameters: [ec49a5c](https://github.com/daroczig/CEU-DV3/commit/ec49a5c)
+
+12. Simplify `ui.R` by a single call to `renderUI`: [556fdbe](https://github.com/daroczig/CEU-DV3/commit/556fdbe)
+
+13. Add support for timezone setting: [6eec991](https://github.com/daroczig/CEU-DV3/commit/6eec991)
+
+14. Ask for consent before using the app: [2ba4494](https://github.com/daroczig/CEU-DV3/commit/2ba4494)
+
+Final app:
+
+<details><summary>ui.R</summary>
+
+```r
+library(shiny)
+library(shinyWidgets)
+library(particlesjs)
+
+ui <- basicPage(
+    tags$head(
+        tags$link(rel = "stylesheet", type = "text/css", href = "app.css")
+    ),
+    uiOutput('app')
+)
+```
+</details>
+
+<details><summary>www/app.css</summary>
+
+```css
+.center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    background-color: #00000042;
+    padding: 25px 30px;
+    border-radius: 25px;
+}
+
+#settings_show {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    color: black;
+}
+```
+</details>
+
+<details><summary>server.R</summary>
+
+```r
+library(shiny)
+library(shinyWidgets)
+library(lubridate)
+
+server <- function(input, output, session) {
+
+    settings <- reactiveValues(
+        title = 'Data Visualization 4',
+        subtitle = 'Data Visualization in Production with Shiny',
+        schedule = as.POSIXct('2024-05-08 13:30:00'),
+        timezone = Sys.timezone()
+    )
+
+    output$countdown <- renderUI({
+        invalidateLater(250)
+        schedule_tz <- force_tz(settings$schedule, settings$timezone)
+        color <- ifelse(schedule_tz > Sys.time(), 'black', 'red')
+        remaining <- span(
+            round(as.period(abs(schedule_tz - Sys.time()))),
+            style = paste('color', color, sep = ':'))
+        div(
+            h1(settings$title),
+            h2(settings$subtitle),
+            h3('starts in'),
+            h1(tags$b(remaining)),
+            h4(paste('at', settings$schedule, settings$timezone)),
+            class = 'center')
+    })
+
+    observeEvent(input$settings_show, {
+        showModal(
+            modalDialog(
+                textInput("title", "Title", value = settings$title),
+                textInput("subtitle", "Subtitle", value = settings$subtitle),
+                airDatepickerInput("schedule", "Time", value = settings$schedule, timepicker = TRUE),
+                selectInput("timezone", "Timezone", choices = OlsonNames(), selected = settings$timezone),
+                footer = tagList(actionButton('settings_update', 'Update'))
+            )
+        )
+    })
+    observeEvent(input$settings_update, {
+        settings$title <- input$title
+        settings$subtitle <- input$subtitle
+        settings$schedule <- as.POSIXct(input$schedule, tz = input$timezone)
+        settings$timezone <- input$timezone
+        removeModal()
+    })
+
+    observe({
+        query <- parseQueryString(session$clientData$url_search)
+        for (v in c('title', 'subtitle', 'schedule', 'timezone')) {
+            if (!is.null(query[[v]])) {
+                if (v == 'schedule') {
+                    settings[[v]] <- as.POSIXct(query[[v]], tz = settings$timezone)
+                } else {
+                    settings[[v]] <- query[[v]]
+                }
+            }
+        }
+    })
+
+    ## gdpr
+    showModal(modalDialog(
+        p('Click the below button you consent to ...'),
+        footer = tagList(actionButton('consent', 'OK'))
+    ))
+    observeEvent(input$consent, {
+        output$app <- renderUI({
+            list(
+                particles(),
+                actionBttn('settings_show', 'Settings',
+                           icon = icon('gear'),
+                           style = 'material-circle'),
+                uiOutput('countdown')
+            )
+        })
+        removeModal()
+    })
+
+}
+```
+</details>
+
+Further ideas to improve the app:
+
+- get timezone from visitor's browser setting / locale
+- configure theme (colors, layout, background etc)
+- ads!!!
+
 ## Live Shiny
 
 https://posit-dev.github.io/r-shinylive/
 
 ## Home Assignments
 
-To be updated.
+To be updated from week to week.
+
+### Homework 1
+
+1. Check the Shiny tutorial app by creating a new Shiny application in
+RStudio's File/New menu, using the two files approach. Make sure that
+you understand what and how the app is doing.
+
+2. Create a new git repository on GitHub, and push these files
+there. You will use this app as a starting point in the future
+homeworks.
 
 ## Suggested Reading
 
