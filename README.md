@@ -247,6 +247,18 @@ you understand what and how the app is doing.
 there. You will use this app as a starting point in the future
 homeworks.
 
+### Homework 2
+
+- Create a Shiny web application with a dashboard layout, using the `shinydashboard` package.
+
+- It must consist of at least two distinct UI widgets. These widgets could include sliders, dropdown menus, text inputs, radio buttons, etc.
+
+- Include at least three server-side objects, with at least one of them being reactive. These objects should capture and process user inputs or data manipulation.
+
+- Use `ggplot2` for data visualization based on the server-side data, which could be a bar plot, line plot, scatter plot, etc., depending on the nature of the data.
+- Create an interactive plot using `plotly`. This plot should respond to user interactions, such as hovering, clicking, or selecting data points.
+- Display a table that is used to create the visualizations.
+
 ## Suggested Reading
 
 * Hadley Wickham (2021): Mastering Shiny. https://mastering-shiny.org/
