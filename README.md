@@ -259,6 +259,16 @@ homeworks.
 - Create an interactive plot using `plotly`. This plot should respond to user interactions, such as hovering, clicking, or selecting data points.
 - Display a table that is used to create the visualizations.
 
+### Homework 3
+
+- Add at least two new UI widgets (e.g. sliders, dropdowns, text inputs) to the above-created application, and make sure those are integrated with your server logic.
+
+- Add at least one new output based on the materials covered on week 3, e.g. `DT::datatable`, a map or network, `dygraph`, `infobox` or `valuebox`.
+
+- Deploy your app to shinyapps.io as covered on week 3.
+
+Submission: push the changes in your GitHub repo, and share the Shinyapps.io URL on Moodle.
+
 ## Suggested Reading
 
 * Hadley Wickham (2021): Mastering Shiny. https://mastering-shiny.org/
