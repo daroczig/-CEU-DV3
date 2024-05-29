@@ -229,6 +229,12 @@ Further ideas to improve the app:
 - configure theme (colors, layout, background etc)
 - ads!!!
 
+### Day 4
+
+Start a new `t3a.medium` instance using the `dv4` AMI and `dv4` security group.
+Please don't forget to set the Owner and Class tags!
+
+
 ## Live Shiny
 
 https://posit-dev.github.io/r-shinylive/
@@ -236,12 +242,6 @@ https://posit-dev.github.io/r-shinylive/
 ## Home Assignments
 
 To be updated from week to week.
-
-### Day 4
-
-Start a new `t3a.medium` instance using the `dv4` AMI and `dv4` security group.
-Please don't forget to set the Owner and Class tags!
-
 
 ### Homework 1
 
