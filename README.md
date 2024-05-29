@@ -590,6 +590,48 @@ Demo on localhost:
 
 9. Visit your EC2 box's IP address at http://your.ip.address
 
+10. Need to download the Docker image specified in the `application.yml` for the example app
+
+    ```sh
+    sudo docker pull openanalytics/shinyproxy-demo
+    sudo docker image rm openanalytics/shinyproxy-demo
+    ```
+
+11. Let's build a new Docker image for our application! For this end, we need to define the build instructions in a `Dockerfile` placed in `/home/ceu/countdown/Dockerfile`
+
+    ```sh
+    FROM rocker/shiny
+
+    RUN install2.r chatgpt nycflights13 dplyr ggplot2 remotesc
+    RUN installGithub.r -u FALSE daattali/shinycssloaders
+
+    RUN mkdir /app
+    COPY *.R /app/
+
+    CMD ["R", "-e", "shiny::runApp('/app')"]
+    ```
+
+    And then build the Docker image based on the above:
+
+    ```sh
+    sudo docker build -t ggpt .
+    ```
+
+    Now we can run a Docker container based on this image on the command-line:
+
+        ```sh
+        sudo docker run --rm -ti ggpt
+        ```
+
+12. Update the ShinyProxy config to include the above Dockerized app at `/etc/shinyproxy/application.yml`
+
+    ```sh
+    - id: ggpt
+      display-name: gGPT
+      description: Use ChatGPR to generate R code for dataviz on nyscflights13
+      container-image: ggpt
+    ```
+
 
 ## Live Shiny
 
