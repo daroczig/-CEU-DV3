@@ -632,6 +632,32 @@ Demo on localhost:
       container-image: ggpt
     ```
 
+    <a name="debug_shinyproxy"></a>
+
+13. Debug why it's not running?
+
+    ```sh
+    sudo chown shinyproxy:shinyproxy /var/log/shinyproxy.log
+    sudo systemctl restart shinyproxy
+    ```
+
+    Need to update the `Dockerfile` (or config) to expose on the right port:
+
+    ```sh
+    EXPOSE 3838
+    CMD ["R", "-e", "shiny::runApp('/app', port = 3838, host = '0.0.0.0')"]
+    ```
+
+    To see the container-level logs, note that we have configured `container-log-path` to point to `/tmp` in the `application.yml` file, so a new file will be generated in `/tmp` for all new Shiny apps started in a Docker container. To see the list of file, run e.g. `ls -latr /tmp`, which will list the files ordered by file creation timestamp. The most recent file includes the logs of your most recent Docker container started in Shinyproxy, so you can look at that file via `cat /tmp/{filename}` or run `tail -f /tmp/{filename}` to stream the content in real-time.
+
+    If the Shiny application fails to start, the above log(s) might be missed. To debug that problem, try running your app directly with a Docker command, e.g. for the above:
+
+    ```sh
+    sudo docker -ti --rm ggpt
+    ```
+
+    This will start a Docker container in interactive mode, attaching a terminal (so that you can see the outputs and interact with the app), and deleting the Docker container after stopping/failing. This command should finish with a line saying that the Shiny app is listening on port 3838 ... if not, you need to fix the problem.
+
 
 ## Live Shiny
 
