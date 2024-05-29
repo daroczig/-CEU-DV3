@@ -381,6 +381,59 @@ Demo on localhost:
         sudo gdebi shiny-server-1.5.22.1017-amd64.deb
         rm shiny-server-1.5.22.1017-amd64.deb
 
+3. Edit `site_dir` in `shiny-server.conf` to point to the `/home/$USERNAME/apps` folder and optionally also update the `run_as` directive to your username to avoid permissions issue:
+
+        sudo mcedit /etc/shiny-server/shiny-server.conf
+        sudo systemctl restart shiny-server
+
+4. Visit Shiny Server on port 3838 from your browser
+
+    ![](https://raw.githubusercontent.com/daroczig/CEU-R-prod/2018-2019/images/shiny-server.png)
+
+5. 💪 Always keep logs -- set this in the Shiny Server config's top level & restart service as per https://docs.rstudio.com/shiny-server/#logging-and-analytics:
+
+        preserve_logs true;
+
+    Optionally, redirect all logs to the same file by injecting an environment variable in `/etc/systemd/system/shiny-server.service` by adding this line below the other `Environment=` line:
+
+        Environment="SHINY_LOG_STDERR=1"
+
+6. To keep an eye on logs (test with making a typo in the app on purpose):
+
+        sudo tail -f /var/log/shiny-server.log
+
+7. Add `ui.R` and `server.R` files (along with `global.R` and other stuff in the `www` folder) to the folder specified in step 3.
+
+    Note, that Shiny Server has some limitations (eg scaling to multiple users, some headers removed by the Node.js wrapper) -- so you might consider either the Pro version, other RStudio products or eg the below-mentioned Shiny app manager daemon for using Shiny in production at scale.
+
+8. 💪 Run behind a proxy to be able to access on the standard HTTP port (edit `/etc/nginx/sites-enabled/default`):
+
+    ```sh
+    http {
+
+      map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
+      }
+
+      server {
+        listen 80;
+
+        rewrite ^/shiny$ $scheme://$http_host/shiny/ permanent;
+        location /shiny/ {
+          rewrite ^/shiny/(.*)$ /$1 break;
+          proxy_pass http://localhost:3838;
+          proxy_redirect / $scheme://$http_host/shiny/;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection $connection_upgrade;
+          proxy_read_timeout 20d;
+          proxy_buffering off;
+        }
+      }
+    }
+    ```
+
 
 ## Live Shiny
 
