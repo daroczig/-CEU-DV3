@@ -237,6 +237,12 @@ https://posit-dev.github.io/r-shinylive/
 
 To be updated from week to week.
 
+### Day 4
+
+Start a new `t3a.medium` instance using the `dv4` AMI and `dv4` security group.
+Please don't forget to set the Owner and Class tags!
+
+
 ### Homework 1
 
 1. Check the Shiny tutorial app by creating a new Shiny application in
